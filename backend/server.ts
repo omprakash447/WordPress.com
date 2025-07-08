@@ -1,89 +1,169 @@
-import express, { Request, Response } from "express";
-// import connection from "./config/db.js";
 import cors from "cors";
+import express, { Request, response, Response } from "express";
 import sql from "mysql2";
 
 
+
+const app=express();
+app.use(express.json());
+app.use(cors());
+
+
+//sql connection
 const connection=sql.createConnection({
-    host:"localhost",
-    user:"root",
-    password:"mysqlpass",
-    database:"test",
+  host:"localhost",
+  password:"mysqlpass",
+  database:"test",
+  user:"root"
 });
 
 
 connection.connect((err)=>{
-    if(err){
-        console.log(err);
-    }else{
-        console.log("db connected...");
-    }
+  if(err){
+    console.log("there is an error...");
+  }else{
+    console.log("there is not any error...");
+  }
+});
+
+
+
+//table creation for the database
+
+
+const student=async ()=>{
+  try{
+    const sql=`
+    create table if not exists students(
+    id int auto_increment primary key,
+    name varchar(200) not null,
+    regd_no bigint not null unique,
+    branch varchar(200) not null
+    );
+    `
+    await connection.promise().query(sql);
+    console.log("table created successfully...");
+  }catch(err){
+    console.log(err);
+  }
+}
+student();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//post method for inserting...
+app.post("/insert",async(req:Request , res:Response):Promise<any>=>{
+  try{
+    const {name , regd_no , branch}=req.body;
+    const [rows]= await connection.promise().query(
+      `insert into students(name , regd_no , branch) values(? , ? , ? )`,
+      [name , regd_no , branch]
+    );
+
+    return res.status(201).send({
+      message:"inserted to the database...",
+      data:rows,
+    });
+    
+  }catch(err){
+    return res.status(404).send(err);
+  }
+});
+
+
+//get the data
+app.get("/get-data",async(_req:Request , res:Response):Promise<any>=>{
+  try{
+    const [rows]=await connection.promise().query(
+      `select * from students`
+    );
+
+    return res.status(200).send({
+      message:"data fetch successfully...",
+      data:rows
+    });
+  }catch(err){
+    return response.status(404).send(err);
+  }
+});
+
+
+//update the data
+app.put("/update/:id",async(req:Request , res:Response):Promise<any> =>{
+  try{
+    const {id}=req.params;
+    const {name , regd_no , branch}=req.body;
+    
+
+    const [result]= await connection.promise().query(
+      `update students
+       set name= ? , regd_no= ? , branch= ?
+       where id= ?
+      `,
+      [name , regd_no , branch , id]
+    );
+    return res.status(200).send({
+      message:"data updated...",
+      updateddata:result
+    })
+  }catch(err){
+    return res.status(404).send(err);
+  }
+});
+
+
+
+//delet
+app.delete("/delete/:id",async(req:Request,res:Response):Promise<any>=>{
+  try{
+    const {id}=req.params;
+    const [result]=await connection.promise().query(
+      `delete from students
+       where id= ? 
+      `,
+      [id]
+    );
+
+    return res.status(200).send({
+      message:"id deleted...",
+      data:result
+    })
+  }catch(err){
+    return res.status(404).send(err);
+  }
 })
 
 
 
 
 
-const app = express();
-app.use(express.json());
-app.use(cors());
 
-
-// create table
-const mystore = async () => {
-    try {
-        const sql = `
-      CREATE TABLE IF NOT EXISTS items (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        Pname VARCHAR(200) NOT NULL,
-        price DECIMAL(5,3) NOT NULL,
-        date DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-    `;
-
-        await connection.promise().query(sql);
-        console.log("✅ items schema is created...");
-    } catch (err) {
-        console.error("❌ Table not created:", err);
-    }
-};
-
-mystore();
-
-
-
-
-app.post("/insert", async (req: Request, res: Response): Promise<any> => {
-  try {
-    const { Pname, price } = req.body;
-
-    const [] = await connection.promise().query(
-      `INSERT INTO items (Pname, price) VALUES (?, ?)`,
-      [Pname, price]
-    );
-
-    return res.status(201).json({
-      message: "item inserted...",
-    });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).send(err);
-  }
+app.get("/" , (_req:Request , res:Response)=> {
+  res.status(200).send("hiii i am backend");
 });
 
 
 
-
-
-
-
-app.get("/", (_req: Request, res: Response) => {
-    if (!connection) {
-        res.status(500).send("Database connection not established");
-    }
-    res.status(200).send("hiii i am omm");
+app.listen(2000,()=>{
+  console.log("backend connected...");
 });
 
-app.listen(2000, () => {
-    console.log("✅ Server backend connected...");
-});
