@@ -1,9 +1,13 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { UseProvider } from "../../middlewere/authmiddlewere/checkauth";
 
 function Login() {
     const [email , setemail]=useState<string>("");
     const [pass , setpass]=useState<number>();
+    const useprovider=UseProvider();
+    const navigate=useNavigate();
+    const {login}=useprovider;
 
 
 
@@ -14,6 +18,8 @@ function Login() {
             pass
         });
         
+        login();
+        navigate("/");
     }
 
 

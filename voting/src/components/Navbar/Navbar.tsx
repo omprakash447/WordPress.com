@@ -1,7 +1,7 @@
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-
+import { UseProvider } from "../../middlewere/authmiddlewere/checkauth";
 
 const NAV_ITEMS = [
   { label: 'Explore', href: '/' },
@@ -12,9 +12,12 @@ const NAV_ITEMS = [
 
 function Navbar() {
   const [activeLink, setActiveLink] = useState('Explore'); // Default active link
+  const {isloggedin , logout}=UseProvider();
 
-  const checkloggedin: boolean = false;
 
+  const handelLogout=()=>{
+    logout();
+  }
   return (
     <nav
       className="navbar navbar-expand-lg sticky-top bg-dark bg-gradient shadow-sm"
@@ -73,7 +76,7 @@ function Navbar() {
           </ul>
 
           {/* Right buttons */}
-          {checkloggedin ? (
+          {isloggedin ? (
             <>
               <div className="dropdown">
                 <button
@@ -91,7 +94,7 @@ function Navbar() {
                   <li><Link className="dropdown-item" to="#">Profile</Link></li>
                   <li><Link className="dropdown-item" to="#">Settings</Link></li>
                   <li><hr className="dropdown-divider" /></li>
-                  <li><Link className="dropdown-item text-danger" to="#">Logout</Link></li>
+                  <li><Link className="dropdown-item text-danger" to="#" onClick={handelLogout}>Logout</Link></li>
                 </ul>
               </div>
 

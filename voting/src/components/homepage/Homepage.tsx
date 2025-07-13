@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { UseProvider } from "../../middlewere/authmiddlewere/checkauth";
 
 
 function Homepage() {
     // NEW: Manage which tab is active
     const [activeTab, setActiveTab] = useState("recommended");
     const [create, setcreate] = useState<boolean>(false);
-
-    const checkloggedin: boolean = false;
-
+    const {isloggedin}=UseProvider();
 
 
     //creation of the new post
@@ -132,7 +131,7 @@ function Homepage() {
                             Recommended
                         </button>
                     </li>
-                    {checkloggedin ? (<>
+                    {isloggedin ? (<>
                         <li className="nav-item">
                             <button
                                 className={`nav-link text-dark ${activeTab === "myposts" ? "active" : ""
@@ -155,7 +154,7 @@ function Homepage() {
                     {activeTab === "recommended" && (
                         <div className="tab-pane fade show active">
                             <div className="row g-4">
-                                {(checkloggedin ? mydata : mydata.slice(0, 4)).map((post) => {
+                                {(isloggedin ? mydata : mydata.slice(0, 4)).map((post) => {
                                     return (
                                         <div key={post.id} className="col-12 col-md-8 mx-auto">
                                             <div className="card border-0 shadow-sm mb-4">
@@ -193,7 +192,7 @@ function Homepage() {
                                         </div>
                                     )
                                 })}
-                                {checkloggedin ? (<></>) : (<>
+                                {isloggedin ? (<></>) : (<>
                                     {/* Login Prompt */}
                                     <div className="text-center bg-white p-3 rounded shadow-sm">
                                         <p className="text-muted mb-2">
@@ -211,7 +210,9 @@ function Homepage() {
                     )}
 
                     {/* My Posts Tab */}
-                    {activeTab === "myposts" && (
+                    {isloggedin ? (
+                        <>
+                        {activeTab === "myposts" && (
                         <div className="tab-pane fade show active">
                             {/* Create Post Button */}
                             <div className="text-end mb-4">
@@ -261,6 +262,8 @@ function Homepage() {
                             </div>
                         </div>
                     )}
+                        </>
+                    ):(<></>)}
 
 
 
