@@ -1,38 +1,75 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { UseProvider } from "../../middlewere/authmiddlewere/checkauth";
+import { Link } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function Login() {
-    const [email , setemail]=useState<string>("");
-    const [pass , setpass]=useState<number>();
-    const useprovider=UseProvider();
-    const navigate=useNavigate();
-    const {login}=useprovider;
+  const [email, setemail] = useState<string>("");
+  const [pass, setpass] = useState<string>("");
 
+  const handellogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
+    try {
+      const response = await fetch("http://localhost:2000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password: pass }),
+      });
 
-    const handellogin=(e:React.FormEvent<HTMLFormElement>)=>{
-        e.preventDefault();
-        console.log({
-            email,
-            pass
-        });
-        
-        login();
-        navigate("/");
+      let data: any = {};
+      try {
+        data = await response.json();
+      } catch (err) {
+        console.error("Failed to parse JSON response.", err);
+        toast.error("Server error: invalid response format.");
+        return;
+      }
+
+      console.log("Login response:", data);
+
+      if (!response.ok || data.success === false) {
+        toast.error(data.message || "Login failed.");
+      } else {
+        toast.success(data.message || "Login successful!");
+
+        // Save token
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+        }
+
+        // Clear form
+        setemail("");
+        setpass("");
+
+        // Reload after short delay (optional)
+        setTimeout(() => {
+          window.location.href="/";
+        }, 3000);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong. Please try again.");
     }
-
-
-
+  };
 
   return (
     <div className="bg-white min-vh-100">
-      {/* Simple Top Navbar */}
+      <ToastContainer />
+
+      {/* Top Navbar */}
       <nav className="d-flex align-items-center px-4 py-3">
         <Link to="/" className="d-flex align-items-center text-decoration-none">
           <span
             className="d-inline-block rounded-circle text-center bg-primary text-white fw-bold me-2"
-            style={{ width: '40px', height: '40px', lineHeight: '40px', fontSize: '20px' }}
+            style={{
+              width: "40px",
+              height: "40px",
+              lineHeight: "40px",
+              fontSize: "20px",
+            }}
           >
             W
           </span>
@@ -44,9 +81,16 @@ function Login() {
         {/* Reminder Text */}
         <div className="text-center mb-4 px-4">
           <p className="text-muted fs-6">
-            Just a little reminder that by continuing with any of the options below, you agree to our{' '}
-            <a href="#" className="text-primary text-decoration-none">Terms of Service</a> and{' '}
-            <a href="#" className="text-primary text-decoration-none">Privacy Policy</a>.
+            Just a little reminder that by continuing with any of the options
+            below, you agree to our{" "}
+            <a href="#" className="text-primary text-decoration-none">
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a href="#" className="text-primary text-decoration-none">
+              Privacy Policy
+            </a>
+            .
           </p>
         </div>
 
@@ -54,11 +98,15 @@ function Login() {
         <div className="col-10 col-sm-8 col-md-5">
           <div className="card bg-gradient-light shadow-lg border-0">
             <div className="card-body p-5">
-              {/* Logo Placeholder */}
               <div className="text-center mb-4">
                 <span
                   className="d-inline-block rounded-circle text-center bg-primary text-white fw-bold"
-                  style={{ width: '60px', height: '60px', lineHeight: '60px', fontSize: '28px' }}
+                  style={{
+                    width: "60px",
+                    height: "60px",
+                    lineHeight: "60px",
+                    fontSize: "28px",
+                  }}
                 >
                   W
                 </span>
@@ -76,10 +124,9 @@ function Login() {
                     className="form-control"
                     id="email"
                     placeholder="Enter your email or username"
-                    aria-label="Email or Username"
-                    aria-describedby="emailHelp"
                     required
-                    onChange={(e)=>{setemail(e.target.value)}}
+                    value={email}
+                    onChange={(e) => setemail(e.target.value)}
                   />
                   <small id="emailHelp" className="form-text text-muted">
                     We'll never share your email.
@@ -94,22 +141,21 @@ function Login() {
                     className="form-control"
                     id="password"
                     placeholder="Enter your password"
-                    aria-label="Password"
-                    aria-describedby="passwordHelp"
                     required
-                    onChange={(e)=>{setpass(Number(e.target.value))}}
+                    value={pass}
+                    onChange={(e) => setpass(e.target.value)}
                   />
                 </div>
                 <button
                   type="submit"
                   className="btn btn-primary w-100 py-2 mb-3"
-                  style={{ backgroundColor: '#005ea6', borderColor: '#005ea6' }}
+                  style={{ backgroundColor: "#005ea6", borderColor: "#005ea6" }}
                 >
                   Log In
                 </button>
                 <div className="text-center mt-3">
                   <p className="mb-0 text-dark">
-                    Don't have an account?{' '}
+                    Don't have an account?{" "}
                     <Link to="/register" className="text-primary">
                       Sign Up
                     </Link>

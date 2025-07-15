@@ -1,25 +1,57 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function Register() {
-  const [username, setUsername] = useState<string>("");
+  const [name, setUsername] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
-  const handleRegister = (e: React.FormEvent<HTMLFormElement>) => {
+  const navigate=useNavigate();
+
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    try {
+      const response = await fetch(
+        "http://localhost:2000/api/auth/signup",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name, email, password }),
+        }
+      );
 
-    console.log({
-      username,
-      email,
-      password,
-    });
+      const result = await response.json();
+      console.log(result);
 
-    // Here you’d send this data to your backend or handle further logic
+      if (!response.ok) {
+        toast.error(result.message || "Error during registration.");
+      } else {
+        toast.success("Registration successful!");
+        // optionally clear inputs
+
+
+        setTimeout(() => {
+          navigate("/login");
+        }, 3000);
+        setUsername("");
+        setEmail("");
+        setPassword("");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong. Please try again.");
+    }
   };
 
   return (
     <div className="bg-white min-vh-100">
+      {/* Toast Container */}
+      <ToastContainer />
+
       {/* Simple Top Navbar */}
       <nav className="d-flex align-items-center px-4 py-3">
         <Link to="/" className="d-flex align-items-center text-decoration-none">
@@ -44,17 +76,11 @@ function Register() {
           <p className="text-muted fs-6">
             Just a little reminder that by continuing with any of the options
             below, you agree to our{" "}
-            <a
-              href="#"
-              className="text-primary text-decoration-none"
-            >
+            <a href="#" className="text-primary text-decoration-none">
               Terms of Service
             </a>{" "}
             and{" "}
-            <a
-              href="#"
-              className="text-primary text-decoration-none"
-            >
+            <a href="#" className="text-primary text-decoration-none">
               Privacy Policy
             </a>
             .
@@ -96,14 +122,12 @@ function Register() {
                     id="username"
                     placeholder="Enter your username"
                     required
+                    value={name}
                     onChange={(e) => setUsername(e.target.value)}
                   />
                 </div>
                 <div className="mb-4">
-                  <label
-                    htmlFor="email"
-                    className="form-label text-dark"
-                  >
+                  <label htmlFor="email" className="form-label text-dark">
                     Email
                   </label>
                   <input
@@ -112,6 +136,7 @@ function Register() {
                     id="email"
                     placeholder="Enter your email"
                     required
+                    value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
                   <small
@@ -134,6 +159,7 @@ function Register() {
                     id="password"
                     placeholder="Enter your password"
                     required
+                    value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
                   <small

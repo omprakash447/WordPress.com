@@ -17,9 +17,11 @@ export const CreateProvider = ({ children }: { children: any }) => {
     const [isloggedin , setisloggedin]=useState<boolean>(false);
 
     useEffect(()=>{
-        const token=localStorage.getItem("loggedin-info");
-        if(token){
-            setisloggedin(true);
+        const token=localStorage.getItem("token");
+        if(!token){
+            setisloggedin(false);
+        }else{
+            setisloggedin(true)
         }
     },[])
 
@@ -33,7 +35,7 @@ export const CreateProvider = ({ children }: { children: any }) => {
 
     const logout = () => {
         setisloggedin(false);
-        localStorage.removeItem("loggedin-info");
+        localStorage.removeItem("token");
     }
     return (
             <CreateContext.Provider value={{isloggedin , login , logout}}>
