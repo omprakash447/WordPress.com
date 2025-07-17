@@ -3,11 +3,13 @@ import { connection } from "../config/db";
 export const createPostTable = () => {
   const myquery = `
     CREATE TABLE IF NOT EXISTS postTable (
-      postid int auto_increment primary key,
-      title varchar(100) not null,
-      details varchar(1000) not null,
-      imgurl varchar(200) not null,
-      userid int,
+      postid INT AUTO_INCREMENT PRIMARY KEY,
+      title VARCHAR(100) NOT NULL,
+      details VARCHAR(1000) NOT NULL,
+      imgurl VARCHAR(200) NOT NULL,
+      postTime DATETIME DEFAULT CURRENT_TIMESTAMP,
+      postDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+      userid INT,
       FOREIGN KEY (userid) REFERENCES userAuth(id) ON DELETE CASCADE
     );
   `;
