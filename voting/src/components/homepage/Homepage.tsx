@@ -27,29 +27,41 @@ function Homepage() {
   const [publicPosts, setPublicPosts] = useState<PostType[]>([]);
   const [userPosts, setUserPosts] = useState<PostType[]>([]);
 
-  // 🔁 Fetch all public posts
+  //Fetch all public posts
   const fetchPublicPosts = async () => {
     try {
-      const res = await fetch("http://localhost:2000/api/post/public-post");
-      if (!res.ok) throw new Error("Failed to fetch public posts");
-      const data = await res.json();
-      const formatted = data.result.map((post: any, index: number) => ({
-        id: index,
-        title: post.title,
-        details: post.details,
-        image: post.imgurl,
-        author: post.name || "Anonymous",
-        date: post.postDate ? dayjs(post.postDate).fromNow() : "Just now",
-        comments: 0,
-        likes: 0,
-      }));
+      const response = await fetch("http://localhost:2000/api/post/public-post");
+      const data = await response.json();
+
+      console.log("the data is : ",data);
+      
+      const formatted = data.result.map((post: any, index: number) => {
+        const postDate = post.postDate ? dayjs(post.postDate) : null;
+
+        console.log("Post Date Raw:", post.postDate);
+
+        return {
+          id: index,
+          title: post.title || "Untitled",
+          details: post.details || "",
+          image: post.imgurl || "https://via.placeholder.com/400x200.png?text=No+Image",
+          author: post.name || "Anonymous",
+          date: postDate && postDate.isValid() ? postDate.fromNow() : "Unknown",
+          fullDate: postDate && postDate.isValid()
+            ? postDate.format("MMM D, YYYY h:mm A")
+            : "",
+          comments: 0,
+          likes: 0,
+        };
+      });
+
       setPublicPosts(formatted);
-    } catch (err) {
-      console.error("Error fetching public posts:", err);
+    } catch (error) {
+      console.error("Error fetching public posts:", error);
     }
   };
 
-  // 🔁 Fetch logged-in user's own posts
+  //Fetch logged-in user's own posts
   const fetchLoggedinUserPosts = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -79,7 +91,7 @@ function Homepage() {
     }
   };
 
-  // 🔁 Handle post creation
+  // Handle post creation
   const createPost = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
@@ -93,6 +105,9 @@ function Homepage() {
         body: JSON.stringify({ title, details, imgurl }),
       });
       const data = await res.json();
+
+      console.log(data);
+      
       if (res.ok) {
         setTitle("");
         setDetails("");
@@ -109,6 +124,56 @@ function Homepage() {
     }
   };
 
+  // Handle post deletion
+  const deletePost = async (postId: number) => {
+    if (!confirm("Are you sure you want to delete this post?")) return;
+    
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Unauthorized: Please log in");
+        return;
+      }
+
+      const res = await fetch(`http://localhost:2000/api/delete/delete-post/${postId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      let message = "Failed to delete post.";
+      if (res.ok) {
+        const data = await res.json();
+        message = data.message || "Post deleted successfully!";
+      } else {
+        try {
+          const data = await res.json();
+          message = data.message || `Error: ${res.status} ${res.statusText}`;
+        } catch {
+          const text = await res.text();
+          message = text || `Error: ${res.status} ${res.statusText}`;
+          if (res.status === 500) {
+            message = text || "Server error: Failed to delete post. Check backend logs for details (database issue likely).";
+          } else if (res.status === 401) {
+            message = text || "Unauthorized: Invalid or expired token";
+          } else if (res.status === 404) {
+            message = text || "Post not found or you are not authorized to delete it";
+          }
+        }
+      }
+
+      alert(message);
+      if (res.ok) {
+        fetchLoggedinUserPosts(); // Refresh user posts
+      }
+    } catch (err) {
+      console.error("Error deleting post:", err);
+      alert("Failed to connect to server. Please check your network or backend server.");
+    }
+  };
+
   useEffect(() => {
     fetchPublicPosts();
     if (isloggedin) {
@@ -116,7 +181,7 @@ function Homepage() {
     }
   }, [isloggedin]);
 
-  // 🧱 Render a single post
+  // Render a single post
   const renderPostCard = (post: PostType) => (
     <div key={post.id} className="col-12 col-md-8 mx-auto">
       <div className="card border-0 shadow-sm mb-4">
@@ -135,7 +200,17 @@ function Homepage() {
               <span className="text-muted small">{post.comments || 0} comments</span>
               <button className="btn btn-outline-secondary btn-sm ms-2">Comment</button>
             </div>
-            <span className="text-muted">{post.likes || 0} likes</span>
+            <div className="d-flex align-items-center gap-2">
+              <span className="text-muted">{post.likes || 0} likes</span>
+              {activeTab === "myposts" && (
+                <button 
+                  className="btn btn-outline-danger btn-sm"
+                  onClick={() => deletePost(post.id)}
+                >
+                  Delete
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

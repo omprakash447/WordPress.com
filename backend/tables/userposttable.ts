@@ -6,7 +6,7 @@ export const createPostTable = () => {
       postid INT AUTO_INCREMENT PRIMARY KEY,
       title VARCHAR(100) NOT NULL,
       details VARCHAR(1000) NOT NULL,
-      imgurl VARCHAR(200) NOT NULL,
+      imgurl VARCHAR(100000) NOT NULL,
       postTime DATETIME DEFAULT CURRENT_TIMESTAMP,
       postDate DATETIME DEFAULT CURRENT_TIMESTAMP,
       userid INT,

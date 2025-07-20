@@ -6,7 +6,7 @@ const router = express.Router();
 router.get("/public-post", async (_req: Request, res: Response): Promise<any> => {
     try {
         const query = `
-            SELECT name, email, title, details, imgurl
+            SELECT name, email, title, details, imgurl , postTime , postDate
             FROM userAuth
             JOIN posttable ON userAuth.id = posttable.userid;
         `;

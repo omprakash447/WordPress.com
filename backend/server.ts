@@ -2,6 +2,7 @@ import cors from "cors";
 import express, { Request, Response } from "express";
 import { connection } from "./config/db";
 import authRoute from "./routes/auth";
+import deletepost from "./routes/deletepost";
 import getUser from "./routes/getauth";
 import publicPost from "./routes/getpublicpost";
 import getuserpost from "./routes/getuserPost";
@@ -33,6 +34,7 @@ app.use("/api/auth", getUser);
 app.use("/api/table/posttable",postTbale);
 app.use("/api/post",getuserpost);
 app.use("/api/post",publicPost);
+app.use("/api/delete",deletepost);
 
 
 
